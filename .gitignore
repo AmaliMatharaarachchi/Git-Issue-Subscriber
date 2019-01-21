@@ -1,1 +1,4 @@
 target/
+.ballerina
+.idea
+*.conf
