@@ -14,11 +14,14 @@ github4:GitHubConfiguration gitHubConfig = {
  
 github4:Client githubClient = new(gitHubConfig);
 
-public function main() {
-    github4:Repository|error result = githubClient->getRepository("wso2-ballerina/module-github");
+public function isRepository(string repo_name) returns boolean{
+    github4:Repository|error result = githubClient->getRepository(repo_name);
     if (result is github4:Repository) {
-        io:println("Repository wso2-ballerina/module-github: ", result);
+        //io:println(result);
+        return true;
     } else {
         io:println("Error occurred on getRepository(): ", result);
     }
+    return false;
 }
+
