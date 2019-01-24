@@ -1,6 +1,6 @@
 import ballerina/http;
 
-//todo -> errors. response status. handle untaint. error handle these values exist in subscribed_request
+//todo -> errors. response status. handle untaint. error handle request containing all required, handle duplicates in database
 listener http:Listener httpListener = new(config:getAsInt("SERVICE_PORT"));
 
 //GitHub issue subscriber REST service
@@ -14,13 +14,13 @@ service IssueSubscriber on httpListener {
         path: "/subscribe"
     }
     resource function subscribe(http:Caller caller, http:Request request) {
-        var subscribe_request = request.getJsonPayload();
+        var subscribeRequest = request.getJsonPayload();
         http:Response response = new;
 
-        if (subscribe_request is json) {
-            string repositoryOwner = untaint <string>subscribe_request.repositoryOwner;
-            string repositoryName = untaint <string>subscribe_request.repositoryName;
-            string email = untaint <string>subscribe_request.email;
+        if (subscribeRequest is json) {
+            string repositoryOwner = untaint <string>subscribeRequest.repositoryOwner;
+            string repositoryName = untaint <string>subscribeRequest.repositoryName;
+            string email = untaint <string>subscribeRequest.email;
             boolean subscribed = setSubscriber(repositoryOwner, repositoryName, email);
 
             if (subscribed) {
@@ -42,21 +42,21 @@ service IssueSubscriber on httpListener {
         path: "/issue"
     }
     resource function postIssue(http:Caller caller, http:Request request) {
-        var issue_request = request.getJsonPayload();
+        var issueRequest = request.getJsonPayload();
         http:Response response = new;
 
-        if (issue_request is json) {
-            string repositoryOwner = untaint <string>issue_request.repositoryOwner;
-            string repositoryName = untaint <string>issue_request.repositoryName;
-            string issueTitle = untaint <string>issue_request.issueTitle;
-            string issueContent = untaint <string>issue_request.issueContent;
+        if (issueRequest is json) {
+            string repositoryOwner = untaint <string>issueRequest.repositoryOwner;
+            string repositoryName = untaint <string>issueRequest.repositoryName;
+            string issueTitle = untaint <string>issueRequest.issueTitle;
+            string issueContent = untaint <string>issueRequest.issueContent;
             boolean posted = setIssue(repositoryOwner, repositoryName, issueTitle, issueContent);
 
             if (posted) {
-                response.setTextPayload("successful! posted issue to "+repositoryName);
+                response.setTextPayload("successful! posted issue to " + repositoryName);
             }
             else {
-                response.setTextPayload("Error! failed to post issue to "+repositoryName);
+                response.setTextPayload("Error! failed to post issue to " + repositoryName);
             }
         }
         else {

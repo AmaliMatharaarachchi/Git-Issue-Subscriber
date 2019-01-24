@@ -3,6 +3,7 @@ import ballerina/http;
 import ballerina/io;
 import wso2/github4;
 
+//create mySQL REST API client
 github4:GitHubConfiguration gitHubConfig = {
     clientConfig: {
         auth: {
@@ -14,35 +15,50 @@ github4:GitHubConfiguration gitHubConfig = {
 
 github4:Client githubClient = new(gitHubConfig);
 
+# get repository details
+# + repositoryOwner - Repository owner name
+# + repositoryName - Repository name
+# + return - Map<string> of repository details or error
 public function getRepository(string repositoryOwner, string repositoryName) returns map<string>|error {
-    string repo_name = repositoryOwner + "/" + repositoryName;
-    var result = githubClient->getRepository(repo_name);
+    string repositoryFullName = repositoryOwner + "/" + repositoryName;
+    var result = githubClient->getRepository(repositoryFullName);
+
     if (result is github4:Repository) {
         string forkCount = string.convert(result.forkCount ?: 0);
         string stargazerCount = string.convert(result.stargazerCount ?: 0);
         string url = result.url ?: "";
         string owner = result.owner.url;
         string avatarUrl = result.owner.avatarUrl ?: "";
-
         map<string> details = { forks: forkCount, stars: stargazerCount, url: url, owner: owner, owneravatar: avatarUrl
         };
+        log:printInfo("for repository : " + repositoryFullName + " details received. ");
         return details;
     } else {
         RepositoryNotFoundError repositoryNotFoundError = error("Repository with name: "
-            + repo_name + " is not found", { repo_name: <string>repo_name });
+            + repositoryFullName + " is not found", { repositoryFullName: <string>repositoryFullName });
+        log:printError("repository not found");
         return repositoryNotFoundError;
     }
 }
 
+# post issue to repository
+# + repositoryOwner - Repository owner name
+# + repositoryName - Repository name
+# + issueTitle - Title of issue
+# + issueContent - Content of issue
+# + labelList - List of labels
+# + assigneeList - List of assignees
+# + return - Boolean value, issue posted successfully
 public function postIssuetoRepository(string repositoryOwner, string repositoryName, string issueTitle,
                                       string issueContent, string[] labelList, string[] assigneeList) returns boolean {
     var result = githubClient->createIssue(repositoryOwner, repositoryName, issueTitle, issueContent, labelList,
         assigneeList);
     if (result is github4:Issue) {
+        log:printInfo("New issue is posted to repository :" + repositoryOwner + "/" + repositoryName);
         return true;
     }
     else {
-        io:println("error in posting issue : ", result);
+        log:printError("error in posting issue ");
     }
     return false;
 }

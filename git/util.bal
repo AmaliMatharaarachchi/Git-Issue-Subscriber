@@ -1,6 +1,6 @@
 //errors
 type RepositoryNotFoundErrorData record {
-    string repo_name;
+    string repositoryFullName;
 };
 type RepositoryNotFoundError error<string, RepositoryNotFoundErrorData>;
 

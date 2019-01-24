@@ -1,6 +1,8 @@
 import ballerina/io;
+import ballerina/log;
 import wso2/gmail;
 
+//create gmail REST API client
 gmail:GmailConfiguration gmailConfig = {
     clientConfig: {
         auth: {
@@ -15,24 +17,27 @@ gmail:GmailConfiguration gmailConfig = {
 
 gmail:Client gmailClient = new(gmailConfig);
 
-public function sendMail(string recipient, string subject,string body) {
+# send mail
+# + recipient - Recipient name
+# + subject - Email subject
+# + body - Email body
+# + return - Boolean value, email sent
+public function sendMail(string recipient, string subject,string body) returns boolean {
     string userId = "me";
     gmail:MessageRequest messageRequest = {};
     messageRequest.recipient = recipient;
-    messageRequest.sender = "maamalilakshika@gmail.com";
+    messageRequest.sender = config:getAsString("EMAIL");
     messageRequest.subject = subject;
     messageRequest.messageBody = body;
-    //Set the content type of the mail as TEXT_PLAIN or TEXT_HTML.
     messageRequest.contentType = gmail:TEXT_PLAIN;
-    //Send the message.
     var sendMessageResponse = gmailClient->sendMessage(userId, messageRequest);
 
-
     if (sendMessageResponse is (string, string)) {
-
-    } else {
-        //Unsuccessful attempts return a Gmail error.
-        io:println(sendMessageResponse);
+        log:printInfo("Email sent to : "+recipient);
+        return true;
     }
-
+    else {
+        log:printError("Error while sending email to "+ recipient+". " +<string>sendMessageResponse.detail().message);
+    }
+    return false;
 }
