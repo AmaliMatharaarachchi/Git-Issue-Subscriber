@@ -19,26 +19,27 @@ github4:Client githubClient = new(gitHubConfig);
 # + repositoryOwner - Repository owner name
 # + repositoryName - Repository name
 # + return - Map<string> of repository details or error
-public function getRepository(string repositoryOwner, string repositoryName) returns map<string>|error {
+public function getRepository(string repositoryOwner, string repositoryName) returns json {
     string repositoryFullName = repositoryOwner + "/" + repositoryName;
     var result = githubClient->getRepository(repositoryFullName);
-
+    json ret = {};
     if (result is github4:Repository) {
         string forkCount = string.convert(result.forkCount ?: 0);
         string stargazerCount = string.convert(result.stargazerCount ?: 0);
         string url = result.url ?: "";
         string owner = result.owner.url;
         string avatarUrl = result.owner.avatarUrl ?: "";
-        map<string> details = { forks: forkCount, stars: stargazerCount, url: url, owner: owner, owneravatar: avatarUrl
-        };
+        json details = { "forks": forkCount, "stars": stargazerCount, "url": url, "owner": owner, "owneravatar":
+        avatarUrl };
         log:printInfo("for repository : " + repositoryFullName + " details received. ");
-        return details;
+        ret["details"] = details;
+        ret["status"] = 200;
     } else {
-        RepositoryNotFoundError repositoryNotFoundError = error("Repository with name: "
-            + repositoryFullName + " is not found", { repositoryFullName: <string>repositoryFullName });
         log:printError("repository not found");
-        return repositoryNotFoundError;
+        ret["err"] = "Repository with name: " + repositoryFullName + " is not found";
+        ret["status"] = 502;
     }
+    return ret;
 }
 
 # post issue to repository
@@ -50,16 +51,20 @@ public function getRepository(string repositoryOwner, string repositoryName) ret
 # + assigneeList - List of assignees
 # + return - Boolean value, issue posted successfully
 public function postIssuetoRepository(string repositoryOwner, string repositoryName, string issueTitle,
-                                      string issueContent, string[] labelList, string[] assigneeList) returns boolean {
+                                      string issueContent, string[] labelList, string[] assigneeList) returns json {
     var result = githubClient->createIssue(repositoryOwner, repositoryName, issueTitle, issueContent, labelList,
         assigneeList);
+    json ret = {};
+
     if (result is github4:Issue) {
         log:printInfo("New issue is posted to repository :" + repositoryOwner + "/" + repositoryName);
-        return true;
+        ret["status"] = 200;
     }
     else {
         log:printError("error in posting issue ");
+        ret["status"] = 502;
+        ret["err"] = "error in posting issue";
     }
-    return false;
+    return ret;
 }
 

@@ -22,7 +22,7 @@ gmail:Client gmailClient = new(gmailConfig);
 # + subject - Email subject
 # + body - Email body
 # + return - Boolean value, email sent
-public function sendMail(string recipient, string subject,string body) returns boolean {
+public function sendMail(string recipient, string subject,string body) returns json {
     string userId = "me";
     gmail:MessageRequest messageRequest = {};
     messageRequest.recipient = recipient;
@@ -31,13 +31,17 @@ public function sendMail(string recipient, string subject,string body) returns b
     messageRequest.messageBody = body;
     messageRequest.contentType = gmail:TEXT_PLAIN;
     var sendMessageResponse = gmailClient->sendMessage(userId, messageRequest);
+    json ret={"status":502};
 
     if (sendMessageResponse is (string, string)) {
         log:printInfo("Email sent to : "+recipient);
-        return true;
+        ret.status=200;
+        return ret;
     }
     else {
         log:printError("Error while sending email to "+ recipient+". " +<string>sendMessageResponse.detail().message);
+        ret["err"]="Error while sending email to "+ recipient+". " +<string>sendMessageResponse.detail().message;
+        return ret;
     }
-    return false;
+
 }

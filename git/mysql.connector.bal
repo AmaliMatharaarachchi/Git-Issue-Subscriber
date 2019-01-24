@@ -18,59 +18,75 @@ mysql:Client testDB = new({
 # + repositoryName - Repository name
 # + subscriberEmail - Subscriber's email address
 # + return - Boolean value, add subscriber to database is successful
-public function addSubscriber(string repositoryOwner, string repositoryName, string subscriberEmail) returns boolean {
+public function addSubscriber(string repositoryOwner, string repositoryName, string subscriberEmail) returns json {
     //insert record to mySQL database
     var status = testDB->update("INSERT INTO subscriber(email, repo_owner, repo_name)
                           values ('" + subscriberEmail + "','" + repositoryOwner + "','" + repositoryName + "')");
+    json ret = { "status": 502 };
 
     if (status is int) {
         if (int.convert(status) == 1) {
             log:printInfo("subscriber : " + subscriberEmail + " and repository : " + repositoryOwner + "/" +
                     repositoryName + " is added to mySQL database successfully");
-            return true;
+            ret.status = 200;
+
         }
-        log:printError(" Error while adding subscriber :" + subscriberEmail + " and repository : " + repositoryOwner +
-                "/" + repositoryName + "to mySQL database. status returned : " + string.convert(status));
+        else {
+            log:printError(" Error while adding subscriber :" + subscriberEmail + " and repository : " + repositoryOwner +
+                    "/" + repositoryName + "to mySQL database. status returned : " + string.convert(status));
+            ret["err"] = " Error while adding subscriber :" + subscriberEmail + " and repository : " + repositoryOwner +
+                "/" + repositoryName + "to mySQL database.";
+        }
     }
     else {
         log:printError(" Error : " + <string>status.detail().message);
+        ret["err"] = <string>status.detail().message;
     }
-    return false;
+    return ret;
 }
 
 # get subscribers from mysql database
 # + repositoryOwner - Repository owner name
 # + repositoryName - Repository name
 # + return - Array of subscribers' email addresses
-public function getSubscribers(string repositoryOwner, string repositoryName) returns string[] {
+public function getSubscribers(string repositoryOwner, string repositoryName) returns json {
     //retrieve records from mySQL database
     string queryString = "SELECT email FROM subscriber where repo_owner='" + repositoryOwner + "' and repo_name='" +
         repositoryName + "'";
     var result = testDB->select(queryString, ());
     string[] subscribers = [];
+    json ret = { "status": 200 };
 
     if (result is table< record {} >) {
-        var jsonConversionRet = json.convert(result);
-        if (jsonConversionRet is json) {
+        var jsonRecordsResult = json.convert(result);
+        if (jsonRecordsResult is json) {
             //create array of emails
-            foreach var i in 0..<jsonConversionRet.length() {
-                var email = string.convert(jsonConversionRet[i].email);
+            foreach var i in 0..<jsonRecordsResult.length() {
+                var email = string.convert(jsonRecordsResult[i].email);
                 if (email is string) {
                     subscribers[i] = email;
                 }
                 else {
                     log:printError(" Error : " + <string>email.detail().message);
+                    ret.status = 502;
+                    ret["err"] = " Error : " + <string>email.detail().message;
                 }
             }
+
         }
         else {
-            log:printError(" Error : " + <string>jsonConversionRet.detail().message);
+            log:printError(" Error : " + <string>jsonRecordsResult.detail().message);
+            ret.status = 502;
+            ret["err"] = " Error : " + <string>jsonRecordsResult.detail().message;
         }
     }
     else {
         log:printError(" Error : " + <string>result.detail().message);
+        ret.status = 502;
+        ret["err"] = " Error : " + <string>result.detail().message;
     }
-    return subscribers;
+    ret["subscribers"] = subscribers;
+    return ret;
 }
 
 

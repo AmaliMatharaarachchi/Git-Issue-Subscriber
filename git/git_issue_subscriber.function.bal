@@ -7,21 +7,29 @@ import ballerina/log;
 # + repositoryName - Repository name
 # + subscriberEmail - Subscriber's email address
 # + return - Boolean value, subscription is successful
-public function setSubscriber(string repositoryOwner, string repositoryName, string subscriberEmail) returns boolean {
-    var repositoryDetail = getRepository(repositoryOwner, repositoryName);
+public function setSubscriber(string repositoryOwner, string repositoryName, string subscriberEmail) returns json {
+    json result = getRepository(repositoryOwner, repositoryName);
+    json ret = {};
 
-    if (repositoryDetail is map<string>) {
-        boolean added = addSubscriber(repositoryOwner, repositoryName, subscriberEmail);
+    if (result.status == 200) {
+        json added = addSubscriber(repositoryOwner, repositoryName, subscriberEmail);
+        var repositoryDetails = untaint map<string>.convert(result.details);
 
-        if (added) {
-            boolean sent = sendWelcomeMail(repositoryOwner, repositoryName, untaint repositoryDetail, subscriberEmail);
-            return true;
+        if (repositoryDetails is map<string>) {
+            if (added.status == 200) {
+                json sent = sendWelcomeMail(repositoryOwner, repositoryName, repositoryDetails, subscriberEmail);
+                ret["status"] = 200;
+            }
+            else {
+                return added;
+            }
         }
     }
     else {
         log:printError("Error retrieving while retrieving repository details");
+        return result;
     }
-    return false;
+    return ret;
 }
 
 # send the email notification on subscription to subscriber's email
@@ -31,13 +39,13 @@ public function setSubscriber(string repositoryOwner, string repositoryName, str
 # + subscriberEmail - Subscriber's email address
 # + return - Boolean value, mail sent successfully
 public function sendWelcomeMail(string repositoryOwner, string repositoryName, map<string> repositoryDetails, string
-    subscriberEmail) returns boolean {
+    subscriberEmail) returns json {
     string repositoryFullName = repositoryOwner + "/" + repositoryName;
     string body = "You are now subscribed to GitHub repository " + repositoryFullName + "! \n" + "This repository has "
         + repositoryDetails.forks + " forks. " + repositoryDetails.stars + " stars. Go to " + repositoryDetails.url +
         " for more details";
     string subject = "Subscribed to GitHub Repository " + repositoryFullName;
-    boolean sent = sendMail(subscriberEmail, subject, body);
+    json sent = sendMail(subscriberEmail, subject, body);
     return sent;
 }
 
@@ -50,30 +58,34 @@ public function sendWelcomeMail(string repositoryOwner, string repositoryName, m
 # + issueContent - Content of the issue
 # + return - Boolean value, issue posted successfully
 public function setIssue(string repositoryOwner, string repositoryName, string issueTitle, string issueContent) returns
-                                                                                                                boolean
+                                                                                                                json
 {
-    boolean posted = postIssuetoRepository(repositoryOwner, repositoryName, issueTitle, issueContent, [], []);
+    json postIssueResult = postIssuetoRepository(repositoryOwner, repositoryName, issueTitle, issueContent, [], []);
 
-    if (posted) {
+    if (postIssueResult.status == 200) {
         notifySubscribers(repositoryOwner, repositoryName);
-        return true;
     }
-    return false;
+    return postIssueResult;
 }
 
 # send the email notification on new issue to all subscribes of the issue
 # + repositoryOwner - Repository owner name
 # + repositoryName - Repository name
 public function notifySubscribers(string repositoryOwner, string repositoryName) {
-    string[] subscribers = getSubscribers(repositoryOwner, repositoryName);
+    json subscribersResult = getSubscribers(repositoryOwner, repositoryName);
 
-    foreach string email in subscribers {
-        boolean sent = sendNewIssueMail(repositoryOwner, repositoryName, untaint email);
+    if (subscribersResult.status == 200) {
+        string[] subscribers = <string[]>subscribersResult.subscribers;
 
-        if (!sent) {
-            log:printError("new issue notification mail not sent to email address : " + email);
+        foreach string email in subscribers {
+            json sentMailResult = sendNewIssueMail(repositoryOwner, repositoryName, untaint email);
+
+            if (sentMailResult.status != 200) {
+                log:printError("new issue notification mail not sent to email address : " + email);
+            }
         }
     }
+
 }
 
 # send the email notification on new issue
@@ -81,12 +93,12 @@ public function notifySubscribers(string repositoryOwner, string repositoryName)
 # + repositoryName - Repository name
 # + subscriberEmail - Subscriber's email address
 # + return - Boolean value, mail sent successfully
-public function sendNewIssueMail(string repositoryOwner, string repositoryName, string subscriberEmail) returns boolean
+public function sendNewIssueMail(string repositoryOwner, string repositoryName, string subscriberEmail) returns json
 {
     string repositoryFullName = repositoryOwner + "/" + repositoryName;
     string body = "New issue has been posted to GitHub repository " + repositoryFullName + "! \n Go to " +
         "https://github.com/" + repositoryFullName + " for more details";
     string subject = "A new issue posted to GitHub Repository " + repositoryFullName;
-    boolean sent = sendMail(subscriberEmail, subject, body);
-    return sent;
+    json sentMailResult = sendMail(subscriberEmail, subject, body);
+    return sentMailResult;
 }
