@@ -1,5 +1,4 @@
 target/
-.ballerina
 .idea
 *.conf
 *.log
