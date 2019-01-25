@@ -29,10 +29,10 @@ public function addSubscriber(string repositoryOwner, string repositoryName, str
             log:printInfo("subscriber : " + subscriberEmail + " and repository : " + repositoryOwner + "/" +
                     repositoryName + " is added to mySQL database successfully");
             ret.status = 200;
-
         }
         else {
-            log:printError(" Error while adding subscriber :" + subscriberEmail + " and repository : " + repositoryOwner +
+            log:printError(" Error while adding subscriber :" + subscriberEmail + " and repository : " + repositoryOwner
+                    +
                     "/" + repositoryName + "to mySQL database. status returned : " + string.convert(status));
             ret["err"] = " Error while adding subscriber :" + subscriberEmail + " and repository : " + repositoryOwner +
                 "/" + repositoryName + "to mySQL database.";
@@ -51,17 +51,20 @@ public function addSubscriber(string repositoryOwner, string repositoryName, str
 # + return - Array of subscribers' email addresses
 public function getSubscribers(string repositoryOwner, string repositoryName) returns json {
     //retrieve records from mySQL database
-    string queryString = "SELECT email FROM SUBSCRIBER WHERE REPO_OWNER='"+ repositoryOwner+"' AND REPO_NAME='"+repositoryName+"'";
+    string queryString = "SELECT email FROM SUBSCRIBER WHERE REPO_OWNER='" + repositoryOwner + "' AND REPO_NAME='" +
+        repositoryName + "'";
     var result = testDB->select(queryString, ());
     string[] subscribers = [];
     json ret = { "status": 200 };
 
     if (result is table< record {} >) {
         var jsonRecordsResult = json.convert(result);
+
         if (jsonRecordsResult is json) {
             //create array of emails
             foreach var i in 0..<jsonRecordsResult.length() {
                 var email = string.convert(jsonRecordsResult[i].email);
+
                 if (email is string) {
                     subscribers[i] = email;
                 }
@@ -71,7 +74,6 @@ public function getSubscribers(string repositoryOwner, string repositoryName) re
                     ret["err"] = " Error : " + <string>email.detail().message;
                 }
             }
-
         }
         else {
             log:printError(" Error : " + <string>jsonRecordsResult.detail().message);

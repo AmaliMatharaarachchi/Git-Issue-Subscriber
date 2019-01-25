@@ -23,6 +23,7 @@ public function getRepository(string repositoryOwner, string repositoryName) ret
     string repositoryFullName = repositoryOwner + "/" + repositoryName;
     var result = githubClient->getRepository(repositoryFullName);
     json ret = {};
+
     if (result is github4:Repository) {
         string forkCount = string.convert(result.forkCount ?: 0);
         string stargazerCount = string.convert(result.stargazerCount ?: 0);
