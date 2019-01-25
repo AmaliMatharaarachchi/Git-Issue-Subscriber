@@ -6,6 +6,13 @@ Also when a user subscribe to a repository, he will receive an email.
 
 ![Overview](git_issue_subscriber_diagram.png)
 
+### Prerequisites
+
+* Install MySQL
+* Install Ballerina
+* Create a GitHub account
+* Create a Gmail account
+
 ### Getting started
 
 * Clone the repository by running the following command
