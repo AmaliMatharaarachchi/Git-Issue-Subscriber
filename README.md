@@ -6,6 +6,13 @@ Also when a user subscribe to a repository, he will receive an email.
 
 ![Overview](git_issue_subscriber_diagram.png)
 
+### Prerequisites
+
+* Install MySQL
+* Install Ballerina
+* Create a GitHub account
+* Create a Gmail account
+
 ### Getting started
 
 * Clone the repository by running the following command
@@ -16,6 +23,17 @@ git clone https://github.com/AmaliMatharaarachchi/Git-Issue-Subscriber.git
 * Initialize the ballerina project.
 ```shell
 ballerina init
+```
+* Execute following commands in mySQL to create the database and tables
+
+```shell
+CREATE SCHEMA `Issue_Subscriber`;
+CREATE TABLE `Issue_Subscriber`.`subscriber` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `email` VARCHAR(45) NOT NULL,
+  `repo_owner` VARCHAR(45) NOT NULL,
+  `repo_name` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`id`));
 ```
 * Create a file called `ballerina.conf` and include the following configurations*
 ```shell
