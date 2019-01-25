@@ -17,6 +17,17 @@ git clone https://github.com/AmaliMatharaarachchi/Git-Issue-Subscriber.git
 ```shell
 ballerina init
 ```
+* Execute following commands in mySQL to create the database and tables
+
+```shell
+CREATE SCHEMA `Issue_Subscriber`;
+CREATE TABLE `Issue_Subscriber`.`subscriber` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `email` VARCHAR(45) NOT NULL,
+  `repo_owner` VARCHAR(45) NOT NULL,
+  `repo_name` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`id`));
+```
 * Create a file called `ballerina.conf` and include the following configurations*
 ```shell
 
