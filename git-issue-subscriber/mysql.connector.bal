@@ -20,8 +20,9 @@ mysql:Client testDB = new({
 # + return - Boolean value, add subscriber to database is successful
 public function addSubscriber(string repositoryOwner, string repositoryName, string subscriberEmail) returns json {
     //insert record to mySQL database
-    var status = testDB->update("INSERT INTO subscriber(email, repo_owner, repo_name)
-                          values ('" + subscriberEmail + "','" + repositoryOwner + "','" + repositoryName + "')");
+    string sqlString = "INSERT INTO subscriber(email, repo_owner, repo_name)
+                          values (?,?,?)";
+    var status = testDB->update(sqlString, subscriberEmail, repositoryOwner, repositoryName);
     json ret = { "status": 502 };
 
     if (status is int) {
@@ -51,9 +52,8 @@ public function addSubscriber(string repositoryOwner, string repositoryName, str
 # + return - Array of subscribers' email addresses
 public function getSubscribers(string repositoryOwner, string repositoryName) returns json {
     //retrieve records from mySQL database
-    string queryString = "SELECT email FROM SUBSCRIBER WHERE REPO_OWNER='" + repositoryOwner + "' AND REPO_NAME='" +
-        repositoryName + "'";
-    var result = testDB->select(queryString, ());
+    string queryString = "SELECT DISTINCT email FROM SUBSCRIBER WHERE REPO_OWNER = ? AND REPO_NAME = ? ";
+    var result = testDB->select(queryString, (),repositoryOwner,repositoryName);
     string[] subscribers = [];
     json ret = { "status": 200 };
 
