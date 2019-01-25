@@ -51,8 +51,7 @@ public function addSubscriber(string repositoryOwner, string repositoryName, str
 # + return - Array of subscribers' email addresses
 public function getSubscribers(string repositoryOwner, string repositoryName) returns json {
     //retrieve records from mySQL database
-    string queryString = "SELECT email FROM subscriber where repo_owner='" + repositoryOwner + "' and repo_name='" +
-        repositoryName + "'";
+    string queryString = "SELECT email FROM SUBSCRIBER WHERE REPO_OWNER='"+ repositoryOwner+"' AND REPO_NAME='"+repositoryName+"'";
     var result = testDB->select(queryString, ());
     string[] subscribers = [];
     json ret = { "status": 200 };
