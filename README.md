@@ -2,7 +2,7 @@
 Git Issue Subscriber allow users to subscribe to repositories and get notification mail when a new issue has been posted. 
 People who are interested can subscribe to get notification when an issue is posted to a GitHub repository via the application. 
 Subscribers receive a gmail notification if an issue is posted on the repository. 
-Also when a user subscribe to a repository, he will receive an email
+Also when a user subscribe to a repository, he will receive an email.
 
 ![Overview](git_issue_subscriber_diagram.png)
 
